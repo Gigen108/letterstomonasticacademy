@@ -31,7 +31,7 @@ Open the [**Testimonials**](https://airtable.com/app3KoZGg1uwP1RZn/tblPhcAnbKSGr
 ### GitHub
 
 - Repo: **monasticacademy/letterstomonasticacademy**
-- Site: `index.html`, `testimonials.html` (plain static HTML, served by GitHub Pages)
+- Site: `index.html` (testimonials homepage — the sync target), `submit.html` (the submission form) (plain static HTML, served by GitHub Pages)
 - Sync script: `scripts/sync-testimonials.py`
 - Tests: `tests/test_sync_testimonials.py`
 - Workflows:
@@ -57,5 +57,5 @@ Open the [**Testimonials**](https://airtable.com/app3KoZGg1uwP1RZn/tblPhcAnbKSGr
 | Edit a testimonial | Edit the row in Airtable; next sync (≤15 min) updates the site |
 | Reject something already published | Change `Status` to `Rejected`; next sync removes it |
 | Reorder | Currently sorted by Airtable's createdTime (newest first). Reordering would need an `Order` field + a small script tweak |
-| Change the site design | Edit `index.html` / `testimonials.html`, push (or PR). The Tests check will appear on the PR |
+| Change the site design | Edit `index.html` / `submit.html`, push (or PR). The Tests check will appear on the PR |
 | Force an immediate sync | GitHub → Actions → "Sync testimonials from Airtable" → "Run workflow" |

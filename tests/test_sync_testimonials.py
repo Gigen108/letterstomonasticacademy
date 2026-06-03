@@ -179,12 +179,12 @@ class PublishedHtmlValidityTests(unittest.TestCase):
         errors = validate_html_file(ROOT / "index.html")
         self.assertEqual(errors, [], f"index.html has errors: {errors}")
 
-    def test_testimonials_html_is_well_formed(self):
-        errors = validate_html_file(ROOT / "testimonials.html")
-        self.assertEqual(errors, [], f"testimonials.html has errors: {errors}")
+    def test_submit_html_is_well_formed(self):
+        errors = validate_html_file(ROOT / "submit.html")
+        self.assertEqual(errors, [], f"submit.html has errors: {errors}")
 
-    def test_testimonials_has_markers(self):
-        text = (ROOT / "testimonials.html").read_text(encoding="utf-8")
+    def test_index_has_markers(self):
+        text = (ROOT / "index.html").read_text(encoding="utf-8")
         self.assertEqual(text.count(sync.START_MARKER), 1)
         self.assertEqual(text.count(sync.END_MARKER), 1)
         self.assertLess(
@@ -193,8 +193,8 @@ class PublishedHtmlValidityTests(unittest.TestCase):
             "START marker must precede END marker",
         )
 
-    def test_testimonials_has_at_least_one_testimonial(self):
-        text = (ROOT / "testimonials.html").read_text(encoding="utf-8")
+    def test_index_has_at_least_one_testimonial(self):
+        text = (ROOT / "index.html").read_text(encoding="utf-8")
         self.assertIn('class="testimonial"', text)
 
 
@@ -209,7 +209,7 @@ class EndToEndRenderTests(unittest.TestCase):
             {"fields": {"Testimonial": "Multi-paragraph.\n\nSecond para."}, "createdTime": "2025-01-03"},
         ]
         blocks = sync.render_all(records)
-        current = (ROOT / "testimonials.html").read_text(encoding="utf-8")
+        current = (ROOT / "index.html").read_text(encoding="utf-8")
         new = sync.replace_between_markers(current, blocks)
 
         parser = StrictHTMLValidator()

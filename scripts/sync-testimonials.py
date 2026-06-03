@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Sync testimonials from Airtable into testimonials.html.
+"""Sync testimonials from Airtable into index.html.
 
 Reads rows from the Airtable table where Status = "Publish" and replaces the
-content between the START/END markers in testimonials.html.
+content between the START/END markers in index.html.
 
 Required env vars:
   AIRTABLE_TOKEN     Personal Access Token with data.records:read on the base
   AIRTABLE_BASE_ID   e.g. appXXXXXXXXXXXXXX
 Optional:
   AIRTABLE_TABLE_NAME  defaults to "Testimonials"
-  HTML_PATH            defaults to "testimonials.html"
+  HTML_PATH            defaults to "index.html"
 
 Expected Airtable schema (table "Testimonials"):
   Testimonial   Long text       (the testimonial body)
@@ -103,14 +103,14 @@ def main():
     token = os.environ["AIRTABLE_TOKEN"]
     base_id = os.environ["AIRTABLE_BASE_ID"]
     table = os.environ.get("AIRTABLE_TABLE_NAME") or "Testimonials"
-    html_path = os.environ.get("HTML_PATH") or "testimonials.html"
+    html_path = os.environ.get("HTML_PATH") or "index.html"
 
     records = fetch_records(token, base_id, table)
     blocks = render_all(records)
 
     if not blocks:
         # Guard against wiping the file when Airtable is empty/misconfigured.
-        print("No Publish records found; leaving testimonials.html unchanged.")
+        print("No Publish records found; leaving index.html unchanged.")
         return
 
     with open(html_path, encoding="utf-8") as f:
