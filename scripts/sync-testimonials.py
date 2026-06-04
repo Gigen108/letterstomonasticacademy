@@ -21,12 +21,48 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
 START_MARKER = "<!-- TESTIMONIALS:START -->"
 END_MARKER = "<!-- TESTIMONIALS:END -->"
+
+# Airtable's edge/WAF blocks the default Python-urllib User-Agent with an
+# intermittent "406: blocked" page, so identify ourselves explicitly.
+USER_AGENT = "letterstomonasticacademy-sync/1.0 (+github-actions)"
+
+# Retry transient WAF/rate-limit responses with exponential backoff before
+# failing the whole workflow.
+MAX_ATTEMPTS = 4
+RETRY_STATUS = {406, 429, 500, 502, 503, 504}
+
+
+def _request_with_retry(req):
+    """Fetch a request, retrying transient WAF/rate-limit errors with backoff."""
+    last_error = None
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            with urllib.request.urlopen(req) as resp:
+                return json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="replace")
+            last_error = RuntimeError(f"Airtable API HTTP {e.code}: {body}")
+            if e.code not in RETRY_STATUS or attempt == MAX_ATTEMPTS:
+                raise last_error from e
+        except urllib.error.URLError as e:
+            last_error = RuntimeError(f"Airtable API request failed: {e.reason}")
+            if attempt == MAX_ATTEMPTS:
+                raise last_error from e
+        delay = 2 ** attempt
+        print(
+            f"Airtable request failed (attempt {attempt}/{MAX_ATTEMPTS}), "
+            f"retrying in {delay}s: {last_error}",
+            file=sys.stderr,
+        )
+        time.sleep(delay)
+    raise last_error
 
 
 def fetch_records(token, base_id, table):
@@ -46,14 +82,10 @@ def fetch_records(token, base_id, table):
             headers={
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/json",
+                "User-Agent": USER_AGENT,
             },
         )
-        try:
-            with urllib.request.urlopen(req) as resp:
-                data = json.loads(resp.read())
-        except urllib.error.HTTPError as e:
-            body = e.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"Airtable API HTTP {e.code}: {body}") from e
+        data = _request_with_retry(req)
         records.extend(data.get("records", []))
         offset = data.get("offset")
         if not offset:
